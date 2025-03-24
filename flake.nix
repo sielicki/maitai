@@ -144,7 +144,7 @@
               shellHook = ''
                 ${config.pre-commit.installationScript}
                 rm -rf .vscode/ && mkdir -p .vscode/ && cp ${vscode-config} .vscode/settings.json;
-                rm sgconfig.yml && ln -s ${ast-grep-config} sgconfig.yml
+                rm -f sgconfig.yml && ln -s ${ast-grep-config} sgconfig.yml
               '';
             };
         };
