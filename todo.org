@@ -1,0 +1,40 @@
+#+title: Todo
+
+
+
+
+
+** TODO derivation is a mess
+
+Figure out what is going on in [[file:default.nix][default.nix]] and get a lot of those dependencies
+out of there.
+
+** TODO make a template
+
+copy everything that currently exists into a template flake and then start
+expanding this
+
+** TODO consider a flake module for defining and iterating over llvm versions.
+
+flake.nix is kind of unreadable, too.
+
+** TODO investigate writing matchers in nix
+
+it really would not be that hard once you extract the existing library of
+matchers.
+
+#+begin_src shell
+$ ast-grep -p 'AST_POLYMORPHIC_MATCHER_P($DEF, AST_POLYMORPHIC_SUPPORTED_TYPES($$$RETTY), $$$)' -r '$DEF = lib.oneOf [ $$$RETTY ];'
+#+end_src
+
+** TODO investigate interop w/ ast-grep
+
+no idea what this would ever possibly look like, but it would be awesome to be
+able to combine these tools.
+
+
+** TODO command line utility to create a new check
+
+** TODO consider cxx modules so each check is a single file
+
+** TODO consider adding a matchers directory rather than requiring them in the check

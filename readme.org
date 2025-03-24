@@ -6,11 +6,11 @@
 </a>
 #+END_HTML
 
-out-of-tree infrastructure for making your own clang-tidy checks.
+out-of-tree infrastructure for making your own clang-tidy checks. (mai tai -> my tai(DY)).
 
 * Usage:
 
-Add =maitai= to your =flake.nix=.
+Fork it.
 
 #+begin_src nix
 {
