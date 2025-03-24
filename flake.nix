@@ -18,7 +18,6 @@
         "18"
         "19"
         "20"
-        "git"
       ];
       mkModuleFor = versionString: {
         imports = [
