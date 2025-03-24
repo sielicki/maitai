@@ -1,0 +1,23 @@
+#+title: (WIP): maitai
+
+#+BEGIN_HTML
+<a href="https://flakehub.com/flake/sielicki/maitai?view=releases">
+<img src="https://img.shields.io/endpoint?url=https://flakehub.com/f/sielicki/maitai/badge" />
+</a>
+#+END_HTML
+
+out-of-tree infrastructure for making your own clang-tidy checks.
+
+* Usage:
+
+Add =maitai= to your =flake.nix=.
+
+#+begin_src nix
+{
+  inputs.maitai.url = "https://flakehub.com/f/sielicki/maitai/*";
+
+  outputs = { self, maitai, ... }: {
+    # Use in your outputs
+  };
+}
+#+end_src

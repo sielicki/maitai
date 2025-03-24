@@ -1,0 +1,7 @@
+.cache
+.devenv
+build
+compile_commands.json
+.pre-commit-config.yaml
+sgconfig.yml
+result
