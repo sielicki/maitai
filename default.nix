@@ -6,10 +6,17 @@
 , libxml2
 , llvmPackages
 , python3Packages
+, python3
+, writeText
 ,
 }:
 let
-  stdenv = llvmPackages.libcxxStdenv;
+  stdenv = llvmPackages.stdenv;
+  python3WithLit = python3.withPackages (ps: [ python3Packages.lit ]);
+  litScript = writeText "lit.py" ''
+    from lit.main import main
+    main()
+  '';
   applyPassthrus = drv:
     drv.overrideAttrs (prev: prev // {
       meta = with lib; {
@@ -27,6 +34,7 @@ applyPassthrus (stdenv.mkDerivation {
     fileset = lib.fileset.unions [
       ./CMakeLists.txt
       ./src
+      ./test
     ];
     root = ./.;
   };
@@ -34,6 +42,14 @@ applyPassthrus (stdenv.mkDerivation {
     cmake
     ninja
     stdenv.cc
+  ];
+
+  doCheck = true;
+  checkTarget = "check-maitai";
+
+  cmakeFlags = [
+    "-DLLVM_EXTERNAL_LIT=${litScript}"
+    "-DPython3_EXECUTABLE=${python3WithLit}/bin/python3"
   ];
 
   buildInputs =
