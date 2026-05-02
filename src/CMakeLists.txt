@@ -4,7 +4,11 @@ target_include_directories(maitai PRIVATE
   ${LLVM_INCLUDE_DIRS}
   ${CLANG_INCLUDE_DIRS}
 )
-target_sources(maitai PRIVATE module.cc checks/maitai_example.cc)
+target_sources(maitai PRIVATE
+  module.cc
+  checks/maitai_example.cc
+  checks/maitai_avoid_memset.cc
+)
 target_compile_features(maitai PRIVATE cxx_std_23)
 
 if(NOT LLVM_ENABLE_RTTI)

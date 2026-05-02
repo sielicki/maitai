@@ -9,51 +9,40 @@
   };
 
   outputs =
-    inputs @ { systems
-    , flake-parts
-    , ...
-    }:
-    let
-      llvmPackageSet = [
-        "18"
-        "19"
-        "20"
-        "21"
-        "22"
-      ];
-      mkModuleFor = versionString: {
-        imports = [
-          inputs.flake-parts.flakeModules.easyOverlay
-        ];
-        perSystem =
-          { config
-          , pkgs
-          , ...
-          }:
-          let
-            pkg = pkgs.callPackage ./default.nix { llvmPackages = pkgs."llvmPackages_${versionString}"; };
-            name = pkg.pname + "-" + versionString;
-          in
-          {
-            packages.${name} = pkg;
-            overlayAttrs.${name} = config.packages.${name};
-          };
-      };
-    in
+    inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [ "aarch64-darwin" "aarch64-linux" "x86_64-linux" "x86_64-darwin" ];
-      imports =
-        (map mkModuleFor llvmPackageSet)
-        ++ [
-          inputs.git-hooks-nix.flakeModule
-          inputs.treefmt-nix.flakeModule
-        ];
+      systems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-linux"
+        "x86_64-darwin"
+      ];
+
+      imports = [
+        inputs.flake-parts.flakeModules.easyOverlay
+        inputs.git-hooks-nix.flakeModule
+        inputs.treefmt-nix.flakeModule
+        ./nix/modules/multi-llvm.nix
+      ];
+
       perSystem =
         { config
         , lib
         , pkgs
         , ...
-        }: {
+        }:
+        {
+          multiLlvm = {
+            versions = [
+              "18"
+              "19"
+              "20"
+              "21"
+              "22"
+            ];
+            package = ./default.nix;
+          };
+
           treefmt = {
             programs.ruff-format.enable = true;
             programs.shfmt.enable = true;
@@ -70,6 +59,7 @@
             ];
             programs.typos.enable = true;
           };
+
           pre-commit = {
             check.enable = true;
             settings.src = ./.;
@@ -96,6 +86,7 @@
               trim-trailing-whitespace.enable = true;
             };
           };
+
           devShells.default =
             let
               llvmPackages = pkgs.llvmPackages_21;
@@ -111,7 +102,9 @@
                       extensions = [ n ];
                       libraryPath = d.outPath + "/parser/${n}.so";
                     };
-                    validLangs = pkgs.lib.filterAttrs (n: _v: n == "nix") pkgs.vimPlugins.nvim-treesitter.grammarPlugins;
+                    validLangs = lib.filterAttrs (
+                      n: _v: n == "nix"
+                    ) pkgs.vimPlugins.nvim-treesitter.grammarPlugins;
                   in
                   {
                     ruleDirs = [ "./rules" ];
@@ -122,9 +115,9 @@
               vscode-config = pkgs.writeTextFile {
                 name = "settings.json";
                 text = builtins.toJSON {
-                  nix.formatterPath = (pkgs.lib.getBin pkgs.nixfmt-rfc-style) + "/bin/nixfmt";
+                  nix.formatterPath = (lib.getBin pkgs.nixfmt-rfc-style) + "/bin/nixfmt";
                   astGrep.configPath = ast-grep-config;
-                  clangd.path = "${pkgs.lib.getBin llvmPackages.clang-tools}/bin/clangd";
+                  clangd.path = "${lib.getBin llvmPackages.clang-tools}/bin/clangd";
                   clangd.checkUpdates = false;
                 };
               };

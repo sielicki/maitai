@@ -3,6 +3,7 @@
 #include <clang-tidy/ClangTidyModuleRegistry.h>
 #endif
 
+#include "maitai_avoid_memset.hh"
 #include "maitai_example.hh"
 
 namespace maitai {
@@ -12,6 +13,7 @@ public:
   void addCheckFactories(
       clang::tidy::ClangTidyCheckFactories &CheckFactories) override {
     CheckFactories.registerCheck<ExampleCheck>("maitai-example");
+    CheckFactories.registerCheck<AvoidMemsetCheck>("maitai-avoid-memset");
   }
 };
 
