@@ -30,6 +30,32 @@ template <typename... Names>
                         "vsprintf", "gets", "scanf");
 }
 
+// Member-function counterpart to `callToFunction`. Matches calls of the form
+// `obj.foo(...)` or `ptr->foo(...)` where `foo` is one of the given names.
+// Note that this only matches *non-static* member calls; static methods
+// invoked unqualified will fall under `callToFunction` instead.
+template <typename... Names>
+[[nodiscard]] inline auto callToMemberFunction(Names &&...names) {
+  using namespace clang::ast_matchers;
+  return cxxMemberCallExpr(
+      callee(cxxMethodDecl(hasAnyName(std::forward<Names>(names)...))));
+}
+
+// Variadic-argument format-string family. Pairs with checks that nudge toward
+// `std::print` / `std::format` (C++23) or `fmt::print`.
+[[nodiscard]] inline auto printfFamilyCall() {
+  return callToFunction("printf", "fprintf", "sprintf", "snprintf", "vprintf",
+                        "vfprintf", "vsprintf", "vsnprintf", "wprintf",
+                        "fwprintf", "swprintf", "vswprintf");
+}
+
+// Manual C-style allocation and deallocation. Usually paired with checks that
+// recommend RAII containers or `std::make_unique` / `std::make_shared`.
+[[nodiscard]] inline auto cMemoryFunctionCall() {
+  return callToFunction("malloc", "calloc", "realloc", "reallocarray",
+                        "aligned_alloc", "free");
+}
+
 // =============================================================================
 // Source-location filters
 // =============================================================================
@@ -87,6 +113,31 @@ template <typename... Extras>
   return cxxMethodDecl(isVirtual(), isPure());
 }
 
+// Class with at least one *directly declared* virtual method. Classes that
+// are polymorphic only by inheritance won't match — combine with
+// `isDerivedFrom(polymorphicClass())` if you need that case too.
+[[nodiscard]] inline auto polymorphicClass() {
+  using namespace clang::ast_matchers;
+  return cxxRecordDecl(hasMethod(isVirtual()));
+}
+
+// Public non-static data members. `fieldDecl` already excludes static members
+// (which are `varDecl`s in the AST). Useful for encapsulation checks.
+[[nodiscard]] inline auto publicDataMember() {
+  using namespace clang::ast_matchers;
+  return fieldDecl(isPublic());
+}
+
+// Single-argument constructor that hasn't been marked `explicit` and isn't
+// a copy or move constructor — i.e. the kind that participates in implicit
+// conversions. Pairs naturally with checks that recommend `explicit`.
+[[nodiscard]] inline auto nonExplicitConvertingCtor() {
+  using namespace clang::ast_matchers;
+  return cxxConstructorDecl(parameterCountIs(1), unless(isExplicit()),
+                            unless(isCopyConstructor()),
+                            unless(isMoveConstructor()));
+}
+
 // =============================================================================
 // Type patterns
 // =============================================================================
@@ -98,6 +149,21 @@ template <typename... Extras>
   using namespace clang::ast_matchers;
   return qualType(hasDeclaration(classTemplateSpecializationDecl(
       hasAnyName("std::unique_ptr", "std::shared_ptr", "std::weak_ptr"))));
+}
+
+// Class-template specializations of the standard sequence/associative
+// containers, plus `std::span`, `std::string`, and `std::string_view`. Use
+// as `hasType(stdContainerType())` to spot accidental copies, by-value
+// parameters that should be by-reference, etc.
+[[nodiscard]] inline auto stdContainerType() {
+  using namespace clang::ast_matchers;
+  return qualType(hasDeclaration(classTemplateSpecializationDecl(hasAnyName(
+      "std::vector", "std::array", "std::deque", "std::list",
+      "std::forward_list", "std::set", "std::multiset", "std::map",
+      "std::multimap", "std::unordered_set", "std::unordered_multiset",
+      "std::unordered_map", "std::unordered_multimap", "std::stack",
+      "std::queue", "std::priority_queue", "std::span", "std::basic_string",
+      "std::basic_string_view"))));
 }
 
 // =============================================================================
@@ -132,6 +198,31 @@ template <typename... Extras>
 [[nodiscard]] inline auto oldStyleEnum() {
   using namespace clang::ast_matchers;
   return enumDecl(unless(isScoped()));
+}
+
+// C-style explicit cast `(T)expr`, excluding the common `(void)x` discard
+// idiom. Pairs with checks that nudge toward `static_cast`,
+// `reinterpret_cast`, or `std::bit_cast`.
+[[nodiscard]] inline auto cStyleCast() {
+  using namespace clang::ast_matchers;
+  return cStyleCastExpr(unless(hasType(qualType(asString("void")))));
+}
+
+// `typedef T U;` declarations (the C-style spelling). Excludes implicit /
+// system-supplied typedefs. C++11 `using U = T;` is a different AST node
+// (`typeAliasDecl`) and won't match — that's intentional, since this matcher
+// is meant to flag the legacy form for replacement.
+[[nodiscard]] inline auto legacyTypedefDecl() {
+  using namespace clang::ast_matchers;
+  return typedefDecl(unless(isImplicit()));
+}
+
+// Variable-length array declarations — a C99 feature not part of standard
+// C++. Useful for portability checks targeting MSVC or strict-conformance
+// builds.
+[[nodiscard]] inline auto vlaDecl() {
+  using namespace clang::ast_matchers;
+  return varDecl(hasType(variableArrayType()));
 }
 
 // =============================================================================
@@ -181,6 +272,36 @@ template <typename... Extras>
       hasLHS(declRefExpr(to(varDecl().bind("__sa")))),
       hasRHS(ignoringParenImpCasts(
           declRefExpr(to(varDecl(equalsBoundNode("__sa")))))));
+}
+
+// Assignment used as the condition of `if` / `while` / `for` / `do-while`.
+// Often a typo for `==`. Compilers usually warn, but a check can give a
+// targeted diagnostic and a one-character fix.
+[[nodiscard]] inline auto assignmentInCondition() {
+  using namespace clang::ast_matchers;
+  const auto Assign =
+      ignoringParenImpCasts(binaryOperator(isAssignmentOperator()));
+  return stmt(anyOf(ifStmt(hasCondition(Assign)),
+                    whileStmt(hasCondition(Assign)),
+                    forStmt(hasCondition(Assign)),
+                    doStmt(hasCondition(Assign))));
+}
+
+// `reinterpret_cast<T>(x)` — almost always a code smell, since safe uses
+// (round-tripping a pointer through `uintptr_t`, low-level serialization)
+// are rare and typically warrant explicit review.
+[[nodiscard]] inline auto reinterpretCast() {
+  using namespace clang::ast_matchers;
+  return cxxReinterpretCastExpr();
+}
+
+// `const_cast<T>(x)` that strips `const` (rather than adding it). Adding
+// `const` is benign; stripping it is the case worth flagging.
+[[nodiscard]] inline auto constStrippingCast() {
+  using namespace clang::ast_matchers;
+  return cxxConstCastExpr(
+      hasSourceExpression(hasType(qualType(isConstQualified()))),
+      unless(hasType(qualType(isConstQualified()))));
 }
 
 } // namespace maitai::matchers
