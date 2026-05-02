@@ -1,4 +1,5 @@
 #include "maitai_example.hh"
+#include "maitai_matchers.hh"
 #include <clang/Lex/Lexer.h>
 
 using namespace clang::ast_matchers;
@@ -12,7 +13,7 @@ namespace maitai {
 
 auto ExampleCheck::registerMatchers(MatchFinder *Finder) -> void {
   Finder->addMatcher(
-      expr(isExpandedFromMacro("MACRO_IMPLEMENTING_MIN")).bind("macro_min"),
+      matchers::expandedFromMacroNamed("MACRO_IMPLEMENTING_MIN").bind("macro_min"),
       this);
 }
 

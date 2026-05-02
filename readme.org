@@ -10,7 +10,16 @@ out-of-tree infrastructure for making your own clang-tidy checks. (mai tai -> my
 
 * Usage:
 
-Fork it.
+Initialize a new project from the template:
+
+#+begin_src shell
+nix flake init -t github:sielicki/maitai
+nix develop
+new-check my-first-check
+#+end_src
+
+Or, fork this repo directly if you want the multi-LLVM-version build matrix
+and the formatting / pre-commit machinery wired up out of the box.
 
 #+begin_src nix
 {
@@ -21,3 +30,10 @@ Fork it.
   };
 }
 #+end_src
+
+* Adding a check:
+
+From inside the dev shell, =new-check <kebab-case-name>= scaffolds the header,
+source, and LIT test, and wires the new check into =src/module.cc= and
+=src/CMakeLists.txt=. Implement the matcher and =check= method, fill out the
+LIT test, then =nix build= to compile and run the test suite.

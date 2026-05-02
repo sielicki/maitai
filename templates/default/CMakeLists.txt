@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.27)
+project(mychecks)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+find_package(LLVM REQUIRED CONFIG)
+find_package(Clang REQUIRED CONFIG)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+include(AddLLVM)
+add_subdirectory(src)
+
+enable_testing()
+add_subdirectory(test)

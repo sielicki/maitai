@@ -1,0 +1,10 @@
+@LIT_SITE_CFG_IN_HEADER@
+
+import sys
+import os
+
+config.llvm_tools_dir = "@LLVM_TOOLS_DIR@"
+config.clang_tidy_dir = "@CLANG_TIDY_DIR@"
+config.mychecks_plugin = "@MYCHECKS_PLUGIN@"
+
+lit_config.load_config(config, "@MYCHECKS_TEST_SOURCE_DIR@/lit.cfg.py")

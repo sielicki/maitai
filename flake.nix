@@ -25,6 +25,24 @@
         ./nix/modules/multi-llvm.nix
       ];
 
+      flake.templates.default = {
+        path = ./templates/default;
+        description = "Minimal out-of-tree clang-tidy plugin scaffold";
+        welcomeText = ''
+          # Custom clang-tidy checks template
+
+          You now have a working out-of-tree clang-tidy plugin:
+
+          - `nix build` — builds the plugin and runs the LIT tests
+          - `nix develop` — drops you into a dev shell with cmake/ninja/clang-tools
+          - `new-check <kebab-case-name>` (from inside the dev shell) — scaffolds
+            a new check + LIT test and wires it into `src/module.cc` and CMake
+
+          See https://github.com/sielicki/maitai for the multi-LLVM-version
+          variant of this scaffold.
+        '';
+      };
+
       perSystem =
         { config
         , lib
@@ -102,9 +120,11 @@
                       extensions = [ n ];
                       libraryPath = d.outPath + "/parser/${n}.so";
                     };
-                    validLangs = lib.filterAttrs (
-                      n: _v: n == "nix"
-                    ) pkgs.vimPlugins.nvim-treesitter.grammarPlugins;
+                    validLangs = lib.filterAttrs
+                      (
+                        n: _v: n == "nix"
+                      )
+                      pkgs.vimPlugins.nvim-treesitter.grammarPlugins;
                   in
                   {
                     ruleDirs = [ "./rules" ];
@@ -121,6 +141,11 @@
                   clangd.checkUpdates = false;
                 };
               };
+              new-check = pkgs.writeShellApplication {
+                name = "new-check";
+                runtimeInputs = [ pkgs.python3 ];
+                text = ''exec python3 ${./scripts/new-check.py} "$@"'';
+              };
             in
             mkShell {
               inputsFrom = [ config.packages.maitai-21 ];
@@ -130,6 +155,7 @@
                 pkgs.cmake
                 pkgs.ninja
                 pkgs.ast-grep
+                new-check
 
                 config.treefmt.build.wrapper
                 config.pre-commit.settings.package

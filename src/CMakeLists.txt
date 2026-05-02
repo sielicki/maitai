@@ -1,3 +1,5 @@
+add_subdirectory(matchers)
+
 add_library(maitai MODULE)
 target_include_directories(maitai PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/checks
@@ -8,6 +10,7 @@ target_sources(maitai PRIVATE
   module.cc
   checks/maitai_example.cc
   checks/maitai_avoid_memset.cc
+  checks/maitai_rule_of_five.cc
 )
 target_compile_features(maitai PRIVATE cxx_std_23)
 
@@ -16,6 +19,7 @@ if(NOT LLVM_ENABLE_RTTI)
 endif()
 
 target_link_libraries(maitai PRIVATE
+  maitai-matchers
   clangAST
   clangASTMatchers
   clangBasic

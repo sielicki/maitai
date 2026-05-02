@@ -1,4 +1,5 @@
 #include "maitai_avoid_memset.hh"
+#include "maitai_matchers.hh"
 #include <clang/Lex/Lexer.h>
 
 using namespace clang::ast_matchers;
@@ -11,9 +12,7 @@ using clang::Lexer;
 namespace maitai {
 
 auto AvoidMemsetCheck::registerMatchers(MatchFinder *Finder) -> void {
-  Finder->addMatcher(
-      callExpr(callee(functionDecl(hasName("memset")))).bind("memset_call"),
-      this);
+  Finder->addMatcher(matchers::callToFunction("memset").bind("memset_call"), this);
 }
 
 auto AvoidMemsetCheck::check(const MatchFinder::MatchResult &Result) -> void {
