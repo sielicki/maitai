@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   DeterminateCI:
-    uses: DeterminateSystems/ci/.github/workflows/workflow.yml@main
+    uses: DeterminateSystems/ci/.github/workflows/workflow.yml@e8a6a215f4df6aaa9b239c8b3293d944ce70df21
     permissions:
       id-token: write
       contents: read
@@ -22,6 +22,6 @@ jobs:
         {
           "aarch64-darwin": "macos-latest",
           "aarch64-linux": "ubuntu-24.04-arm",
-          "x86_64-darwin": "macos-13",
+          "x86_64-darwin": "macos-15",
           "x86_64-linux": "ubuntu-latest"
         }

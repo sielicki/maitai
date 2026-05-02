@@ -3,17 +3,15 @@
 #include <clang-tidy/ClangTidyCheck.h>
 
 namespace maitai {
-using namespace clang::tidy;
-using namespace clang::ast_matchers;
 
-class ExampleCheck : public ClangTidyCheck {
+class ExampleCheck : public clang::tidy::ClangTidyCheck {
 public:
-  ExampleCheck(clang::StringRef Name, ClangTidyContext *Context)
+  ExampleCheck(clang::StringRef Name, clang::tidy::ClangTidyContext *Context)
       : ClangTidyCheck(Name, Context) {}
 
-  void registerMatchers(MatchFinder *Finder) override;
+  void registerMatchers(clang::ast_matchers::MatchFinder *Finder) override;
 
-  void check(const MatchFinder::MatchResult &Result) override;
+  void check(const clang::ast_matchers::MatchFinder::MatchResult &Result) override;
 };
 
 } // namespace maitai

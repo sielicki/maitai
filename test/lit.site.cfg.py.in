@@ -6,6 +6,5 @@ import os
 config.llvm_tools_dir = "@LLVM_TOOLS_DIR@"
 config.clang_tidy_dir = "@CLANG_TIDY_DIR@"
 config.maitai_plugin = "@MAITAI_PLUGIN@"
-config.llvm_plugin_ext = "@LLVM_PLUGIN_EXT@"
 
 lit_config.load_config(config, "@MAITAI_TEST_SOURCE_DIR@/lit.cfg.py")

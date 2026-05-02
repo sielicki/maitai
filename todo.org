@@ -1,10 +1,6 @@
 #+title: Todo
 
-
-
-
-
-** TODO derivation is a mess
+** DONE derivation is a mess
 
 Figure out what is going on in [[file:default.nix][default.nix]] and get a lot of those dependencies
 out of there.

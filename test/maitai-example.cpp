@@ -1,4 +1,5 @@
-// RUN: %clang_tidy -checks='-*,maitai-example' -load %maitai_plugin %s -- 2>&1 | %FileCheck %s
+// RUN: %clang_tidy -checks='-*,maitai-example' -load %maitai_plugin %s -- > %t 2>&1 || true
+// RUN: %FileCheck %s < %t
 
 #define MACRO_IMPLEMENTING_MIN(a, b) ((a) < (b) ? (a) : (b))
 

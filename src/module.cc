@@ -1,6 +1,7 @@
-#include <clang-tidy/ClangTidy.h>
 #include <clang-tidy/ClangTidyModule.h>
+#if __clang_major__ < 22
 #include <clang-tidy/ClangTidyModuleRegistry.h>
+#endif
 
 #include "maitai_example.hh"
 
@@ -15,6 +16,6 @@ public:
 };
 
 static clang::tidy::ClangTidyModuleRegistry::Add<ExampleTidyModule>
-    X("maitai-examples", "Add all maitai example checks.");
+    X("maitai", "Add all maitai checks.");
 
 } // namespace maitai

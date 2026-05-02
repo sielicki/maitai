@@ -17,17 +17,8 @@ let
     from lit.main import main
     main()
   '';
-  applyPassthrus = drv:
-    drv.overrideAttrs (prev: prev // {
-      meta = with lib; {
-        description = "my personal clang-tidy checks";
-        license = llvmPackages.clang-tools.meta.license;
-        platforms = platforms.unix;
-      };
-    });
 in
-applyPassthrus (stdenv.mkDerivation {
-  name = "maitai-${lib.versions.major llvmPackages.llvm.version}";
+stdenv.mkDerivation {
   pname = "maitai";
   version = lib.versions.major llvmPackages.llvm.version;
   src = lib.fileset.toSource {
@@ -38,10 +29,10 @@ applyPassthrus (stdenv.mkDerivation {
     ];
     root = ./.;
   };
-  depsBuildBuild = [
+
+  nativeBuildInputs = [
     cmake
     ninja
-    stdenv.cc
   ];
 
   doCheck = true;
@@ -52,28 +43,33 @@ applyPassthrus (stdenv.mkDerivation {
     "-DPython3_EXECUTABLE=${python3WithLit}/bin/python3"
   ];
 
+  nativeCheckInputs = [
+    python3Packages.lit
+  ];
+
   buildInputs =
     (with llvmPackages; [
-      clang-tools
-      clang-unwrapped
-      clang-unwrapped.dev
-      libclang
-      libcxx
-      llvm
       clang
       clang-tools
       clang-unwrapped
       clang-unwrapped.dev
+      libclang
       libclang.dev
       libcxx
       libcxx.dev
+      llvm
       llvm.dev
       llvm.lib
     ])
     ++ [
-      python3Packages.lit
       libffi
       zlib
       libxml2
     ];
-})
+
+  meta = with lib; {
+    description = "my personal clang-tidy checks";
+    license = llvmPackages.clang-tools.meta.license;
+    platforms = platforms.unix;
+  };
+}

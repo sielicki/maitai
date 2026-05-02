@@ -21,10 +21,9 @@ auto ExampleCheck::check(const MatchFinder::MatchResult &Result) -> void {
   if (!MacroExpr)
     return;
 
-  auto &SM = *Result.SourceManager;
-  const auto &LangOpts = Result.Context->getLangOpts();
-
   if (const auto *Cond = dyn_cast<ConditionalOperator>(MacroExpr)) {
+    auto &SM = *Result.SourceManager;
+    const auto &LangOpts = Result.Context->getLangOpts();
     const auto Arg1 =
         Lexer::getSourceText(
             CharSourceRange::getTokenRange(Cond->getLHS()->getSourceRange()),

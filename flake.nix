@@ -18,6 +18,8 @@
         "18"
         "19"
         "20"
+        "21"
+        "22"
       ];
       mkModuleFor = versionString: {
         imports = [
@@ -96,7 +98,7 @@
           };
           devShells.default =
             let
-              llvmPackages = pkgs.llvmPackages_19;
+              llvmPackages = pkgs.llvmPackages_21;
               stdenv = llvmPackages.libcxxStdenv;
               mkShell = pkgs.mkShell.override {
                 inherit stdenv;
@@ -128,7 +130,7 @@
               };
             in
             mkShell {
-              inputsFrom = [ config.packages.maitai-19 ];
+              inputsFrom = [ config.packages.maitai-21 ];
               packages = [
                 pkgs.nixd
                 pkgs.cppcheck
